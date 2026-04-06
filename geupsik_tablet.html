@@ -346,8 +346,11 @@
 
 <script>
 // ── 설정 ──────────────────────────────────────────────────
-let API_URL     = localStorage.getItem('apiUrl')     || '';
-let MOBILE_URL  = localStorage.getItem('mobileUrl')  || window.location.href;
+const DEFAULT_API_URL    = 'https://script.google.com/macros/s/AKfycbwa0kjUAUKG4qAnu-3MA-L1vSZHXekgfXdEiYBfNE-c0loNi6eJ7Qf8ns_p1Cp7QGU_5A/exec';
+const DEFAULT_MOBILE_URL = 'https://sbyjune1-web.github.io/geupsik/geupsik_mobile.html?api=https://script.google.com/macros/s/AKfycbwa0kjUAUKG4qAnu-3MA-L1vSZHXekgfXdEiYBfNE-c0loNi6eJ7Qf8ns_p1Cp7QGU_5A/exec';
+
+let API_URL     = localStorage.getItem('apiUrl')    || DEFAULT_API_URL;
+let MOBILE_URL  = localStorage.getItem('mobileUrl') || DEFAULT_MOBILE_URL;
 let currentMeal = '조식';
 let qrObj       = null;
 const recentItems = [];

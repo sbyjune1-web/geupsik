@@ -138,9 +138,10 @@
 </div>
 
 <script>
+const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbwa0kjUAUKG4qAnu-3MA-L1vSZHXekgfXdEiYBfNE-c0loNi6eJ7Qf8ns_p1Cp7QGU_5A/exec';
 const params = new URLSearchParams(window.location.search);
 const meal   = params.get('meal') || '조식';
-const apiUrl = params.get('api')  || localStorage.getItem('apiUrl') || '';
+const apiUrl = params.get('api')  || localStorage.getItem('apiUrl') || DEFAULT_API;
 
 // 식사 표시
 document.getElementById('mealEmoji').textContent = meal === '조식' ? '🌅' : '🌙';
