@@ -32,19 +32,51 @@
     box-shadow: 0 4px 24px rgba(0,0,0,0.1);
     text-align: center;
   }
-  .emoji { font-size: 56px; margin-bottom: 8px; }
+
+  /* 식사 선택 탭 */
+  .meal-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .meal-tab {
+    flex: 1;
+    padding: 14px;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: 3px solid #e0e0e0;
+    border-radius: 14px;
+    background: #f5f5f5;
+    color: #aaa;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .meal-tab.active.breakfast {
+    background: #FFF3E0;
+    border-color: var(--breakfast);
+    color: var(--breakfast);
+  }
+  .meal-tab.active.dinner {
+    background: #E3F2FD;
+    border-color: var(--dinner);
+    color: var(--dinner);
+  }
+
+  .emoji { font-size: 48px; margin-bottom: 6px; }
   .meal-badge {
     display: inline-block;
-    padding: 6px 20px;
+    padding: 5px 18px;
     border-radius: 20px;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
   .meal-badge.breakfast { background: #FFF3E0; color: var(--breakfast); }
   .meal-badge.dinner    { background: #E3F2FD; color: var(--dinner); }
-  .title { font-size: 22px; font-weight: 900; color: #1a1a1a; margin-bottom: 6px; }
-  .desc  { font-size: 14px; color: #888; margin-bottom: 24px; }
+  .title { font-size: 20px; font-weight: 900; color: #1a1a1a; margin-bottom: 4px; }
+  .desc  { font-size: 13px; color: #888; margin-bottom: 20px; }
+
   input[type=number] {
     width: 100%;
     padding: 18px;
@@ -56,14 +88,18 @@
     text-align: center;
     letter-spacing: 4px;
     outline: none;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     transition: border 0.2s;
     -moz-appearance: textfield;
+    display: block;
+    width: 100%;
   }
   input[type=number]:focus { border-color: #1565C0; }
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
   button.submit {
+    display: block;
     width: 100%;
     padding: 18px;
     font-size: 20px;
@@ -100,7 +136,6 @@
   .result-name.warn    { color: #F57F17; }
   .result-sub  { font-size: 14px; color: #666; }
 
-  /* 다시하기 */
   .retry-btn {
     margin-top: 16px;
     width: 100%;
@@ -119,14 +154,21 @@
 <body>
 <div class="card">
   <div class="emoji" id="mealEmoji">🍱</div>
-  <div class="meal-badge" id="mealBadge">급식</div>
   <div class="title">급식 출석 체크</div>
-  <div class="desc">학번을 입력해주세요</div>
+  <div class="desc">식사를 선택하고 학번을 입력해주세요</div>
+
+  <!-- 조식/석식 선택 탭 (QR 파라미터 없을 때 표시) -->
+  <div class="meal-tabs" id="mealTabs">
+    <button class="meal-tab breakfast" id="tabBreakfast" onclick="selectMeal('조식')">🌅 조식</button>
+    <button class="meal-tab dinner"    id="tabDinner"    onclick="selectMeal('석식')">🌙 석식</button>
+  </div>
+
+  <div class="meal-badge" id="mealBadge">식사 선택</div>
 
   <div id="inputArea" style="display:block;width:100%;">
     <input type="number" id="sid" placeholder="예: 10101" inputmode="numeric" maxlength="5"
-           autofocus onkeydown="if(event.key==='Enter') submit()">
-    <button class="submit" onclick="submit()">출석 체크 ✓</button>
+           onkeydown="if(event.key==='Enter') doSubmit()">
+    <button class="submit" onclick="doSubmit()">출석 체크 ✓</button>
   </div>
 
   <div class="result" id="resultBox">
@@ -140,46 +182,68 @@
 <script>
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbwa0kjUAUKG4qAnu-3MA-L1vSZHXekgfXdEiYBfNE-c0loNi6eJ7Qf8ns_p1Cp7QGU_5A/exec';
 const params = new URLSearchParams(window.location.search);
-// meal: URL 파라미터에서 읽음 (태블릿 QR이 ?meal=석식&api=... 형태로 전달)
-const meal = params.get('meal') || '조식';
-const apiUrl = params.get('api')  || localStorage.getItem('apiUrl') || DEFAULT_API;
+const apiUrl = params.get('api') || DEFAULT_API;
 
-// 식사 표시
-document.getElementById('mealEmoji').textContent = meal === '조식' ? '🌅' : '🌙';
-const badge = document.getElementById('mealBadge');
-badge.textContent = meal + ' 출석';
-badge.className = 'meal-badge ' + (meal === '조식' ? 'breakfast' : 'dinner');
+// QR 스캔으로 meal이 전달된 경우 → 탭 숨기고 고정
+// 직접 접속한 경우 → 탭 표시해서 선택
+let currentMeal = params.get('meal') || null;
 
-async function submit() {
+if (currentMeal) {
+  // QR 스캔으로 접속: 탭 숨기고 식사 고정
+  document.getElementById('mealTabs').style.display = 'none';
+  applyMeal(currentMeal);
+} else {
+  // 직접 접속: 기본 탭 표시 (선택 전)
+  currentMeal = '조식';
+  document.getElementById('tabBreakfast').classList.add('active');
+  applyMeal('조식');
+}
+
+function selectMeal(meal) {
+  currentMeal = meal;
+  document.getElementById('tabBreakfast').classList.toggle('active', meal === '조식');
+  document.getElementById('tabDinner').classList.toggle('active',    meal === '석식');
+  applyMeal(meal);
+  document.getElementById('sid').focus();
+}
+
+function applyMeal(meal) {
+  document.getElementById('mealEmoji').textContent = meal === '조식' ? '🌅' : '🌙';
+  const badge = document.getElementById('mealBadge');
+  badge.textContent = meal + ' 출석';
+  badge.className = 'meal-badge ' + (meal === '조식' ? 'breakfast' : 'dinner');
+}
+
+async function doSubmit() {
   const sid = document.getElementById('sid').value.trim();
-  if (!sid) return;
-  if (!apiUrl) {
-    show('error', '⚙️', '설정 오류', '태블릿 관리자에게 문의하세요');
+  if (!sid) { 
+    show('error', '❌', '학번 입력', '학번을 입력해주세요');
     return;
   }
 
   try {
     const res = await fetch(apiUrl, {
       method: 'POST',
-      body: JSON.stringify({ studentId: sid, meal, method: 'QR스캔' })
+      body: JSON.stringify({ studentId: sid, meal: currentMeal, method: 'QR스캔' })
     });
     const data = await res.json();
 
     if (data.success) {
       const s = data.student;
-      show('success', '✅', `${s.name} 학생`, `${s.grade}학년 ${s.classNum}반 ${s.number}번\n${meal} 출석이 완료되었습니다`);
+      show('success', '✅', `${s.name} 학생`, `${s.grade}학년 ${s.classNum}반 ${s.number}번\n${currentMeal} 출석 완료`);
     } else if (data.duplicate) {
-      show('warn', '⚠️', '이미 완료', `${meal} 출석이 이미 등록되어 있습니다`);
+      show('warn', '⚠️', '이미 완료', `${currentMeal} 출석이 이미 등록되어 있습니다`);
     } else {
       show('error', '❌', '등록 실패', data.message || '학번을 확인해주세요');
     }
   } catch(e) {
-    show('error', '🔌', '연결 오류', '태블릿 관리자에게 문의하세요');
+    show('error', '🔌', '연결 오류', '잠시 후 다시 시도해주세요');
   }
 }
 
 function show(type, icon, name, sub) {
   document.getElementById('inputArea').style.display = 'none';
+  document.getElementById('mealTabs').style.display  = 'none';
   const box = document.getElementById('resultBox');
   box.className = `result ${type}`;
   document.getElementById('rIcon').textContent = icon;
@@ -194,6 +258,10 @@ function retry() {
   document.getElementById('resultBox').className     = 'result';
   document.getElementById('retryBtn').style.display  = 'none';
   document.getElementById('sid').value = '';
+  // QR 스캔이 아닌 직접 접속이면 탭 다시 표시
+  if (!params.get('meal')) {
+    document.getElementById('mealTabs').style.display = 'flex';
+  }
   document.getElementById('sid').focus();
 }
 </script>
