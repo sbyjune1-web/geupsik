@@ -123,7 +123,7 @@
   <div class="title">급식 출석 체크</div>
   <div class="desc">학번을 입력해주세요</div>
 
-  <div id="inputArea">
+  <div id="inputArea" style="display:block;width:100%;">
     <input type="number" id="sid" placeholder="예: 10101" inputmode="numeric" maxlength="5"
            autofocus onkeydown="if(event.key==='Enter') submit()">
     <button class="submit" onclick="submit()">출석 체크 ✓</button>
@@ -140,7 +140,8 @@
 <script>
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbwa0kjUAUKG4qAnu-3MA-L1vSZHXekgfXdEiYBfNE-c0loNi6eJ7Qf8ns_p1Cp7QGU_5A/exec';
 const params = new URLSearchParams(window.location.search);
-const meal   = params.get('meal') || '조식';
+// meal: URL 파라미터에서 읽음 (태블릿 QR이 ?meal=석식&api=... 형태로 전달)
+const meal = params.get('meal') || '조식';
 const apiUrl = params.get('api')  || localStorage.getItem('apiUrl') || DEFAULT_API;
 
 // 식사 표시

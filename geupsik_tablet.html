@@ -381,11 +381,12 @@ function updateQR() {
   const el = document.getElementById('qrcode');
   el.innerHTML = '';
 
-  // MOBILE_URL에 이미 ?가 포함된 경우 &meal=, 없으면 ?meal= 으로 연결
-  let url = '설정에서 모바일 URL을 입력해주세요';
-  if (MOBILE_URL) {
-    const sep = MOBILE_URL.includes('?') ? '&' : '?';
-    url = `${MOBILE_URL}${sep}meal=${encodeURIComponent(currentMeal)}`;
+  // meal을 먼저 배치하고 api URL을 encodeURIComponent로 인코딩
+  // → 모바일에서 params.get('meal') 이 확실히 동작함
+  const mobileBase = 'https://sbyjune1-web.github.io/geupsik/geupsik_mobile.html';
+  let url = `${mobileBase}?meal=${encodeURIComponent(currentMeal)}&api=${encodeURIComponent(API_URL)}`;
+  if (!MOBILE_URL && !API_URL) {
+    url = '설정에서 API URL을 입력해주세요';
   }
 
   qrObj = new QRCode(el, {
