@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>급식 출석 체크</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap');
+
+  :root {
+    --breakfast: #FF8C00;
+    --dinner: #1565C0;
+    --success: #2E7D32;
+    --error: #C62828;
+    --warn: #F57F17;
+    --bg: #F5F5F5;
+    --card: #FFFFFF;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── 헤더 ── */
+  header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .header-title { font-size: 18px; font-weight: 900; color: #1a1a1a; }
+  .header-time  { font-size: 22px; font-weight: 700; color: #555; font-variant-numeric: tabular-nums; }
+  .header-date  { font-size: 13px; color: #888; text-align: right; }
+
+  /* ── 식사 선택 탭 ── */
+  .meal-tabs {
+    display: flex;
+    margin: 16px 16px 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .meal-tab {
+    flex: 1;
+    padding: 14px;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #e0e0e0;
+    color: #888;
+  }
+  .meal-tab.active[data-meal="조식"] { background: var(--breakfast); color: #fff; }
+  .meal-tab.active[data-meal="석식"] { background: var(--dinner);    color: #fff; }
+
+  /* ── QR 코드 박스 ── */
+  .qr-section {
+    margin: 16px;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .qr-label { font-size: 13px; color: #888; margin-bottom: 12px; font-weight: 600; letter-spacing: 1px; }
+  .qr-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  #qrcode canvas, #qrcode img { border-radius: 8px; }
+  .qr-desc { font-size: 12px; color: #aaa; }
+
+  /* ── 학번 입력 ── */
+  .input-section {
+    margin: 0 16px;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .input-label { font-size: 13px; color: #888; font-weight: 600; letter-spacing: 1px; margin-bottom: 10px; }
+  .input-row { display: flex; gap: 10px; }
+  #studentIdInput {
+    flex: 1;
+    padding: 14px 16px;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    outline: none;
+    letter-spacing: 2px;
+    transition: border 0.2s;
+  }
+  #studentIdInput:focus { border-color: #1565C0; }
+  #submitBtn {
+    padding: 14px 24px;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: none;
+    border-radius: 10px;
+    background: #1a1a1a;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  #submitBtn:active { background: #333; }
+
+  /* ── 결과 알림 ── */
+  .result-box {
+    margin: 16px;
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    display: none;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .result-box.success { background: #E8F5E9; color: var(--success); display: block; }
+  .result-box.error   { background: #FFEBEE; color: var(--error);   display: block; }
+  .result-box.warn    { background: #FFFDE7; color: var(--warn);     display: block; }
+  .result-name { font-size: 32px; font-weight: 900; margin: 8px 0; }
+  .result-sub  { font-size: 14px; font-weight: 400; margin-top: 6px; opacity: 0.8; }
+
+  /* ── 오늘 출석 카운터 ── */
+  .counter-section {
+    margin: 0 16px 16px;
+    display: flex;
+    gap: 12px;
+  }
+  .counter-card {
+    flex: 1;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .counter-label { font-size: 12px; color: #888; font-weight: 600; }
+  .counter-num   { font-size: 36px; font-weight: 900; margin-top: 4px; }
+  .counter-card.breakfast .counter-num { color: var(--breakfast); }
+  .counter-card.dinner    .counter-num { color: var(--dinner); }
+
+  /* ── 최근 출석 목록 ── */
+  .recent-section {
+    margin: 0 16px 16px;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    flex: 1;
+    overflow: hidden;
+  }
+  .recent-title { font-size: 13px; color: #888; font-weight: 600; letter-spacing: 1px; margin-bottom: 10px; }
+  .recent-list  { max-height: 200px; overflow-y: auto; }
+  .recent-item  {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 15px;
+    animation: slideIn 0.3s ease;
+  }
+  .recent-item:last-child { border-bottom: none; }
+  .recent-time  { color: #aaa; font-size: 12px; width: 60px; flex-shrink: 0; }
+  .recent-name  { font-weight: 700; flex: 1; }
+  .recent-grade { color: #888; font-size: 12px; }
+  .badge {
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-breakfast { background: #FFF3E0; color: var(--breakfast); }
+  .badge-dinner    { background: #E3F2FD; color: var(--dinner); }
+
+  /* ── 설정 버튼 ── */
+  .settings-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #333;
+    color: #fff;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── 설정 모달 ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+  }
+  .modal h3 { font-size: 18px; font-weight: 900; margin-bottom: 16px; }
+  .modal input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: 'Noto Sans KR', sans-serif;
+    margin-bottom: 12px;
+  }
+  .modal-btns { display: flex; gap: 10px; }
+  .modal-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+  }
+  .modal-btn.primary { background: #1a1a1a; color: #fff; }
+  .modal-btn.secondary { background: #e0e0e0; color: #333; }
+  .modal-desc { font-size: 12px; color: #888; margin-bottom: 8px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<header>
+  <div class="header-title">🍱 급식 출석</div>
+  <div>
+    <div class="header-time" id="clock">--:--:--</div>
+    <div class="header-date" id="dateStr"></div>
+  </div>
+</header>
+
+<!-- 식사 탭 -->
+<div class="meal-tabs">
+  <button class="meal-tab active" data-meal="조식" onclick="selectMeal('조식')">🌅 조식</button>
+  <button class="meal-tab"        data-meal="석식" onclick="selectMeal('석식')">🌙 석식</button>
+</div>
+
+<!-- QR 코드 -->
+<div class="qr-section">
+  <div class="qr-label">📱 QR 스캔으로 빠르게 입력</div>
+  <div class="qr-wrapper"><div id="qrcode"></div></div>
+  <div class="qr-desc">학생 스마트폰으로 QR 스캔 → 학번 입력 페이지 이동</div>
+</div>
+
+<!-- 학번 직접 입력 -->
+<div class="input-section">
+  <div class="input-label">⌨️ 학번 직접 입력</div>
+  <div class="input-row">
+    <input type="number" id="studentIdInput" placeholder="학번 입력 (예: 10101)"
+           maxlength="5" inputmode="numeric" onkeydown="if(event.key==='Enter') submitAttendance('학번입력')">
+    <button id="submitBtn" onclick="submitAttendance('학번입력')">확인 ✓</button>
+  </div>
+</div>
+
+<!-- 결과 알림 -->
+<div class="result-box" id="resultBox">
+  <div id="resultIcon"></div>
+  <div class="result-name" id="resultName"></div>
+  <div class="result-sub" id="resultSub"></div>
+</div>
+
+<!-- 카운터 -->
+<div class="counter-section">
+  <div class="counter-card breakfast">
+    <div class="counter-label">🌅 조식</div>
+    <div class="counter-num" id="breakfastCount">-</div>
+  </div>
+  <div class="counter-card dinner">
+    <div class="counter-label">🌙 석식</div>
+    <div class="counter-num" id="dinnerCount">-</div>
+  </div>
+</div>
+
+<!-- 최근 출석 -->
+<div class="recent-section">
+  <div class="recent-title">📋 최근 출석 기록</div>
+  <div class="recent-list" id="recentList">
+    <div style="color:#ccc; font-size:13px; text-align:center; padding:20px;">아직 출석 기록이 없습니다</div>
+  </div>
+</div>
+
+<!-- 설정 버튼 -->
+<button class="settings-btn" onclick="openSettings()">⚙️</button>
+
+<!-- 설정 모달 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>⚙️ 시스템 설정</h3>
+    <div class="modal-desc">
+      Google Apps Script 배포 후 발급된 웹앱 URL을 입력하세요.<br>
+      형식: https://script.google.com/macros/s/.../exec
+    </div>
+    <input type="url" id="apiUrlInput" placeholder="Apps Script 웹앱 URL">
+    <div class="modal-desc" style="margin-top:4px;">
+      학생이 QR 스캔 시 이동할 모바일 입력 페이지 URL<br>
+      (이 페이지 URL 또는 별도 모바일 페이지)
+    </div>
+    <input type="url" id="mobileUrlInput" placeholder="모바일 입력 페이지 URL">
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeSettings()">취소</button>
+      <button class="modal-btn primary"   onclick="saveSettings()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR 라이브러리 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+// ── 설정 ──────────────────────────────────────────────────
+const DEFAULT_API_URL    = 'https://script.google.com/macros/s/AKfycbwa0kjUAUKG4qAnu-3MA-L1vSZHXekgfXdEiYBfNE-c0loNi6eJ7Qf8ns_p1Cp7QGU_5A/exec';
+const DEFAULT_MOBILE_URL = 'https://sbyjune1-web.github.io/geupsik/geupsik_mobile.html?api=https://script.google.com/macros/s/AKfycbwa0kjUAUKG4qAnu-3MA-L1vSZHXekgfXdEiYBfNE-c0loNi6eJ7Qf8ns_p1Cp7QGU_5A/exec';
+
+let API_URL     = localStorage.getItem('apiUrl')    || DEFAULT_API_URL;
+let MOBILE_URL  = localStorage.getItem('mobileUrl') || DEFAULT_MOBILE_URL;
+let currentMeal = '조식';
+let qrObj       = null;
+const recentItems = [];
+
+// ── 시계 ──────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('ko-KR', { hour12: false });
+  document.getElementById('dateStr').textContent =
+    now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── 식사 선택 ─────────────────────────────────────────────
+function selectMeal(meal) {
+  currentMeal = meal;
+  document.querySelectorAll('.meal-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.meal-tab[data-meal="${meal}"]`).classList.add('active');
+  updateQR();
+  loadStatus();
+  clearResult();
+}
+
+// ── QR 코드 생성 ──────────────────────────────────────────
+function updateQR() {
+  const el = document.getElementById('qrcode');
+  el.innerHTML = '';
+  const url = MOBILE_URL
+    ? `${MOBILE_URL}?meal=${encodeURIComponent(currentMeal)}`
+    : '설정에서 모바일 URL을 입력해주세요';
+
+  qrObj = new QRCode(el, {
+    text:   url,
+    width:  160,
+    height: 160,
+    colorDark:  '#1a1a1a',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+// ── 출석 등록 ─────────────────────────────────────────────
+async function submitAttendance(method) {
+  const input = document.getElementById('studentIdInput');
+  const studentId = input.value.trim();
+
+  if (!studentId) { showResult('error', '❌', '학번을 입력하세요', ''); return; }
+  if (!API_URL)   { showResult('error', '⚙️', '설정 필요', '우측 하단 설정 버튼을 눌러 API URL을 입력하세요'); return; }
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ studentId, meal: currentMeal, method })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      const s = data.student;
+      showResult('success', '✅', `${s.name}`, `${s.grade}학년 ${s.classNum}반 ${s.number}번 · ${currentMeal} 출석 완료`);
+      addRecent(s, currentMeal, method);
+      updateCounter(currentMeal);
+    } else if (data.duplicate) {
+      const s = data.student;
+      showResult('warn', '⚠️', `${s.name}`, `이미 ${currentMeal} 출석이 등록되어 있습니다`);
+    } else {
+      showResult('error', '❌', '등록 실패', data.message || '오류가 발생했습니다');
+    }
+  } catch (e) {
+    showResult('error', '🔌', '연결 오류', 'API URL을 확인하세요: ' + e.message);
+  }
+
+  input.value = '';
+  input.focus();
+}
+
+// ── 결과 표시 ─────────────────────────────────────────────
+let resultTimer = null;
+function showResult(type, icon, name, sub) {
+  const box = document.getElementById('resultBox');
+  box.className = `result-box ${type}`;
+  document.getElementById('resultIcon').textContent = icon;
+  document.getElementById('resultName').textContent = name;
+  document.getElementById('resultSub').textContent  = sub;
+
+  if (resultTimer) clearTimeout(resultTimer);
+  resultTimer = setTimeout(clearResult, 4000);
+}
+function clearResult() {
+  const box = document.getElementById('resultBox');
+  box.className = 'result-box';
+}
+
+// ── 최근 목록 추가 ────────────────────────────────────────
+function addRecent(student, meal, method) {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  recentItems.unshift({ student, meal, method, time: timeStr });
+  if (recentItems.length > 30) recentItems.pop();
+  renderRecent();
+}
+function renderRecent() {
+  const list = document.getElementById('recentList');
+  if (!recentItems.length) {
+    list.innerHTML = '<div style="color:#ccc;font-size:13px;text-align:center;padding:20px;">아직 출석 기록이 없습니다</div>';
+    return;
+  }
+  list.innerHTML = recentItems.map(({ student: s, meal, time }) => `
+    <div class="recent-item">
+      <span class="recent-time">${time}</span>
+      <span class="recent-name">${s.name}</span>
+      <span class="recent-grade">${s.grade}학년 ${s.classNum}반</span>
+      &nbsp;
+      <span class="badge ${meal === '조식' ? 'badge-breakfast' : 'badge-dinner'}">${meal}</span>
+    </div>
+  `).join('');
+}
+
+// ── 카운터 업데이트 ───────────────────────────────────────
+function updateCounter(meal) {
+  const id = meal === '조식' ? 'breakfastCount' : 'dinnerCount';
+  const el = document.getElementById(id);
+  el.textContent = (parseInt(el.textContent) || 0) + 1;
+}
+
+async function loadStatus() {
+  if (!API_URL) return;
+  try {
+    const [r1, r2] = await Promise.all([
+      fetch(`${API_URL}?action=status&meal=조식`).then(r => r.json()),
+      fetch(`${API_URL}?action=status&meal=석식`).then(r => r.json())
+    ]);
+    if (r1.success) document.getElementById('breakfastCount').textContent = r1.count;
+    if (r2.success) document.getElementById('dinnerCount').textContent   = r2.count;
+  } catch(e) {}
+}
+
+// ── 설정 ──────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('apiUrlInput').value    = API_URL;
+  document.getElementById('mobileUrlInput').value = MOBILE_URL;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+function saveSettings() {
+  API_URL    = document.getElementById('apiUrlInput').value.trim();
+  MOBILE_URL = document.getElementById('mobileUrlInput').value.trim();
+  localStorage.setItem('apiUrl',    API_URL);
+  localStorage.setItem('mobileUrl', MOBILE_URL);
+  closeSettings();
+  updateQR();
+  loadStatus();
+}
+
+// ── 초기화 ────────────────────────────────────────────────
+updateQR();
+loadStatus();
+setInterval(loadStatus, 60000); // 1분마다 카운터 갱신
+document.getElementById('studentIdInput').focus();
+</script>
+</body>
+</html>
