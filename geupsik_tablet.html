@@ -3,267 +3,399 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>급식 출석 체크</title>
+<title>급식 출석 - 광주여자상업고등학교</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
 
   :root {
-    --breakfast: #FF8C00;
-    --dinner: #1565C0;
-    --success: #2E7D32;
-    --error: #C62828;
-    --warn: #F57F17;
-    --bg: #F5F5F5;
-    --card: #FFFFFF;
-    --radius: 16px;
+    --pink-light: #fff0f5;
+    --pink-mid:   #ffd6e7;
+    --pink-main:  #ff85b3;
+    --pink-deep:  #e8457a;
+    --rose:       #c2185b;
+    --text-dark:  #3d1a2e;
+    --text-mid:   #7b3f5e;
+    --white:      #ffffff;
+    --breakfast:  #ff6b35;
+    --dinner:     #5b6abf;
+    --success:    #2d8653;
+    --error:      #c0392b;
+    --warn:       #d4820a;
+    --card:       rgba(255,255,255,0.92);
+    --radius:     20px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: 'Noto Sans KR', sans-serif;
-    background: var(--bg);
+    background: linear-gradient(160deg, #fff0f5 0%, #ffffff 40%, #fce4ec 100%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
   }
 
-  /* ── 헤더 ── */
+  /* 헤더 */
   header {
-    padding: 16px 20px;
+    background: linear-gradient(135deg, #fff0f5 0%, #fce4ec 100%);
+    border-bottom: 2px solid var(--pink-mid);
+    padding: 10px 20px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    justify-content: space-between;
+    box-shadow: 0 2px 16px rgba(232,69,122,0.10);
   }
-  .header-title { font-size: 18px; font-weight: 900; color: #1a1a1a; }
-  .header-time  { font-size: 22px; font-weight: 700; color: #555; font-variant-numeric: tabular-nums; }
-  .header-date  { font-size: 13px; color: #888; text-align: right; }
+  .logo-img { height: 48px; object-fit: contain; }
+  .header-center {
+    text-align: center;
+  }
+  .school-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--rose);
+    letter-spacing: 1px;
+  }
+  .header-sub {
+    font-size: 12px;
+    color: var(--text-mid);
+  }
+  .header-clock {
+    text-align: right;
+  }
+  .clock-time {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--rose);
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .clock-date {
+    font-size: 12px;
+    color: var(--text-mid);
+  }
 
-  /* ── 식사 선택 탭 ── */
+  /* 식사 탭 */
   .meal-tabs {
     display: flex;
-    margin: 16px 16px 0;
+    margin: 14px 14px 0;
     border-radius: var(--radius);
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 16px rgba(232,69,122,0.12);
+    border: 2px solid var(--pink-mid);
   }
   .meal-tab {
     flex: 1;
+    padding: 14px;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: #fff8fb;
+    color: #c4a0b0;
+  }
+  .meal-tab.active[data-meal="조식"] {
+    background: linear-gradient(135deg, #fff3e0, #ffccbc);
+    color: var(--breakfast);
+    box-shadow: inset 0 -3px 0 var(--breakfast);
+  }
+  .meal-tab.active[data-meal="석식"] {
+    background: linear-gradient(135deg, #e8eaf6, #c5cae9);
+    color: var(--dinner);
+    box-shadow: inset 0 -3px 0 var(--dinner);
+  }
+
+  /* 메인 그리드 */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 14px;
+    flex: 1;
+  }
+
+  /* QR 섹션 */
+  .qr-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(232,69,122,0.10);
+    border: 1.5px solid var(--pink-mid);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-mid);
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .qr-wrapper { margin-bottom: 8px; }
+  .qr-wrapper canvas, .qr-wrapper img { border-radius: 10px; border: 3px solid var(--pink-mid); }
+  .qr-desc { font-size: 12px; color: #bbb; }
+
+  /* 입력 섹션 */
+  .input-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: 0 4px 20px rgba(232,69,122,0.10);
+    border: 1.5px solid var(--pink-mid);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  #studentIdInput {
+    width: 100%;
+    padding: 14px;
+    font-size: 26px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: 2.5px solid var(--pink-mid);
+    border-radius: 14px;
+    text-align: center;
+    letter-spacing: 4px;
+    outline: none;
+    margin-bottom: 10px;
+    background: #fff8fb;
+    color: var(--text-dark);
+    transition: border 0.2s, box-shadow 0.2s;
+    -moz-appearance: textfield;
+  }
+  #studentIdInput:focus {
+    border-color: var(--pink-deep);
+    box-shadow: 0 0 0 3px rgba(232,69,122,0.15);
+  }
+  #studentIdInput::-webkit-inner-spin-button,
+  #studentIdInput::-webkit-outer-spin-button { -webkit-appearance: none; }
+  #submitBtn {
+    width: 100%;
     padding: 14px;
     font-size: 18px;
     font-weight: 700;
     font-family: 'Noto Sans KR', sans-serif;
     border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: #e0e0e0;
-    color: #888;
-  }
-  .meal-tab.active[data-meal="조식"] { background: var(--breakfast); color: #fff; }
-  .meal-tab.active[data-meal="석식"] { background: var(--dinner);    color: #fff; }
-
-  /* ── QR 코드 박스 ── */
-  .qr-section {
-    margin: 16px;
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-  .qr-label { font-size: 13px; color: #888; margin-bottom: 12px; font-weight: 600; letter-spacing: 1px; }
-  .qr-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
-  }
-  #qrcode canvas, #qrcode img { border-radius: 8px; }
-  .qr-desc { font-size: 12px; color: #aaa; }
-
-  /* ── 학번 입력 ── */
-  .input-section {
-    margin: 0 16px;
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-  .input-label { font-size: 13px; color: #888; font-weight: 600; letter-spacing: 1px; margin-bottom: 10px; }
-  .input-row { display: flex; gap: 10px; }
-  #studentIdInput {
-    flex: 1;
-    padding: 14px 16px;
-    font-size: 20px;
-    font-weight: 700;
-    font-family: 'Noto Sans KR', sans-serif;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    outline: none;
-    letter-spacing: 2px;
-    transition: border 0.2s;
-  }
-  #studentIdInput:focus { border-color: #1565C0; }
-  #submitBtn {
-    padding: 14px 24px;
-    font-size: 18px;
-    font-weight: 700;
-    font-family: 'Noto Sans KR', sans-serif;
-    border: none;
-    border-radius: 10px;
-    background: #1a1a1a;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--pink-deep) 0%, var(--rose) 100%);
     color: #fff;
     cursor: pointer;
-    transition: background 0.2s;
-    white-space: nowrap;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(194,24,91,0.25);
+    letter-spacing: 1px;
   }
-  #submitBtn:active { background: #333; }
+  #submitBtn:active { transform: scale(0.97); opacity: 0.9; }
 
-  /* ── 결과 알림 ── */
-  .result-box {
-    margin: 16px;
-    border-radius: var(--radius);
-    padding: 20px;
-    text-align: center;
-    font-size: 18px;
-    font-weight: 700;
-    display: none;
-    animation: slideIn 0.3s ease;
-  }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .result-box.success { background: #E8F5E9; color: var(--success); display: block; }
-  .result-box.error   { background: #FFEBEE; color: var(--error);   display: block; }
-  .result-box.warn    { background: #FFFDE7; color: var(--warn);     display: block; }
-  .result-name { font-size: 32px; font-weight: 900; margin: 8px 0; }
-  .result-sub  { font-size: 14px; font-weight: 400; margin-top: 6px; opacity: 0.8; }
-
-  /* ── 오늘 출석 카운터 ── */
-  .counter-section {
-    margin: 0 16px 16px;
+  /* 카운터 */
+  .counter-row {
     display: flex;
-    gap: 12px;
+    gap: 14px;
+    margin: 0 14px;
   }
   .counter-card {
     flex: 1;
     background: var(--card);
     border-radius: var(--radius);
-    padding: 16px;
+    padding: 12px 16px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 16px rgba(232,69,122,0.08);
+    border: 1.5px solid var(--pink-mid);
   }
-  .counter-label { font-size: 12px; color: #888; font-weight: 600; }
-  .counter-num   { font-size: 36px; font-weight: 900; margin-top: 4px; }
+  .counter-label { font-size: 12px; color: var(--text-mid); font-weight: 600; }
+  .counter-num   { font-size: 34px; font-weight: 900; margin-top: 2px; }
   .counter-card.breakfast .counter-num { color: var(--breakfast); }
   .counter-card.dinner    .counter-num { color: var(--dinner); }
 
-  /* ── 최근 출석 목록 ── */
-  .recent-section {
-    margin: 0 16px 16px;
+  /* 최근 출석 */
+  .recent-card {
+    margin: 14px;
     background: var(--card);
     border-radius: var(--radius);
-    padding: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 14px 16px;
+    box-shadow: 0 4px 20px rgba(232,69,122,0.08);
+    border: 1.5px solid var(--pink-mid);
     flex: 1;
     overflow: hidden;
   }
-  .recent-title { font-size: 13px; color: #888; font-weight: 600; letter-spacing: 1px; margin-bottom: 10px; }
-  .recent-list  { max-height: 200px; overflow-y: auto; }
-  .recent-item  {
+  .recent-list { max-height: 160px; overflow-y: auto; }
+  .recent-item {
     display: flex;
     align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 15px;
+    padding: 7px 0;
+    border-bottom: 1px solid #fce4ec;
+    font-size: 14px;
     animation: slideIn 0.3s ease;
   }
+  @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
   .recent-item:last-child { border-bottom: none; }
-  .recent-time  { color: #aaa; font-size: 12px; width: 60px; flex-shrink: 0; }
-  .recent-name  { font-weight: 700; flex: 1; }
-  .recent-grade { color: #888; font-size: 12px; }
+  .recent-time  { color: #cba; font-size: 11px; width: 52px; flex-shrink: 0; }
+  .recent-name  { font-weight: 700; flex: 1; color: var(--text-dark); }
+  .recent-grade { color: var(--text-mid); font-size: 11px; margin-right: 6px; }
   .badge {
-    padding: 2px 8px;
+    padding: 2px 9px;
     border-radius: 20px;
     font-size: 11px;
     font-weight: 700;
   }
-  .badge-breakfast { background: #FFF3E0; color: var(--breakfast); }
-  .badge-dinner    { background: #E3F2FD; color: var(--dinner); }
+  .badge-breakfast { background: #fff3e0; color: var(--breakfast); }
+  .badge-dinner    { background: #e8eaf6; color: var(--dinner); }
 
-  /* ── 설정 버튼 ── */
+  /* 팝업 오버레이 */
+  .popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(61,26,46,0.55);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .popup-overlay.show { display: flex; }
+
+  .popup {
+    background: #fff;
+    border-radius: 28px;
+    padding: 36px 32px 28px;
+    width: 420px;
+    max-width: 90%;
+    text-align: center;
+    animation: popUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+  }
+  @keyframes popUp {
+    from { opacity:0; transform: scale(0.7) translateY(30px); }
+    to   { opacity:1; transform: scale(1)   translateY(0); }
+  }
+  .popup.success { border-top: 8px solid var(--success); }
+  .popup.error   { border-top: 8px solid var(--error); }
+  .popup.warn    { border-top: 8px solid var(--warn); }
+
+  .popup-icon { font-size: 72px; line-height: 1; margin-bottom: 10px; }
+  .popup-name { font-size: 36px; font-weight: 900; margin: 8px 0 6px; }
+  .popup.success .popup-name { color: var(--success); }
+  .popup.error   .popup-name { color: var(--error); }
+  .popup.warn    .popup-name { color: var(--warn); }
+  .popup-sub  { font-size: 16px; color: #666; line-height: 1.7; margin-bottom: 22px; }
+
+  .popup-close {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+  }
+  .popup.success .popup-close { background: #e8f5e9; color: var(--success); }
+  .popup.error   .popup-close { background: #ffebee; color: var(--error); }
+  .popup.warn    .popup-close { background: #fff8e1; color: var(--warn); }
+
+  /* 설정 버튼 */
   .settings-btn {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
+    bottom: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: #333;
+    background: var(--rose);
     color: #fff;
     border: none;
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 14px rgba(194,24,91,0.35);
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s;
   }
+  .settings-btn:hover { opacity: 1; }
 
-  /* ── 설정 모달 ── */
+  /* 설정 모달 */
   .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 100;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
     align-items: center;
     justify-content: center;
   }
   .modal-overlay.open { display: flex; }
   .modal {
     background: #fff;
-    border-radius: var(--radius);
+    border-radius: 20px;
     padding: 24px;
     width: 90%;
     max-width: 400px;
+    border-top: 5px solid var(--rose);
   }
-  .modal h3 { font-size: 18px; font-weight: 900; margin-bottom: 16px; }
+  .modal h3 { font-size: 17px; font-weight: 900; color: var(--text-dark); margin-bottom: 14px; }
   .modal input {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #e0e0e0;
+    padding: 11px;
+    border: 2px solid var(--pink-mid);
     border-radius: 10px;
-    font-size: 13px;
+    font-size: 12px;
     font-family: 'Noto Sans KR', sans-serif;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    color: var(--text-dark);
+    outline: none;
   }
-  .modal-btns { display: flex; gap: 10px; }
+  .modal input:focus { border-color: var(--pink-deep); }
+  .modal-desc { font-size: 11px; color: var(--text-mid); margin-bottom: 6px; line-height: 1.5; }
+  .modal-btns { display: flex; gap: 10px; margin-top: 4px; }
   .modal-btn {
     flex: 1;
     padding: 12px;
     border: none;
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     font-family: 'Noto Sans KR', sans-serif;
     cursor: pointer;
   }
-  .modal-btn.primary { background: #1a1a1a; color: #fff; }
-  .modal-btn.secondary { background: #e0e0e0; color: #333; }
-  .modal-desc { font-size: 12px; color: #888; margin-bottom: 8px; line-height: 1.6; }
+  .modal-btn.primary   { background: linear-gradient(135deg, var(--pink-deep), var(--rose)); color: #fff; }
+  .modal-btn.secondary { background: #f0f0f0; color: #666; }
+
+  /* 하트 장식 */
+  .deco {
+    position: fixed;
+    font-size: 22px;
+    opacity: 0.08;
+    pointer-events: none;
+    animation: float 7s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0) rotate(-10deg); }
+    50%      { transform: translateY(-20px) rotate(10deg); }
+  }
 </style>
 </head>
 <body>
 
+<div class="deco" style="top:20%;left:2%;animation-delay:0s;">🌸</div>
+<div class="deco" style="top:60%;right:2%;animation-delay:2s;">💕</div>
+<div class="deco" style="bottom:10%;left:3%;animation-delay:1s;">🌷</div>
+
 <!-- 헤더 -->
 <header>
-  <div class="header-title">🍱 급식 출석</div>
-  <div>
-    <div class="header-time" id="clock">--:--:--</div>
-    <div class="header-date" id="dateStr"></div>
+  <img src="data:image/png;base64,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xMStlLzSELQNi8jCQOASBk81g+g1NwrY0q3yW0i2IS6Y6AVoeBQrJB4JyOxznmnuigNJa4kiTp11qUw3GlPNOM70t7CUkqCVEeRIOSPIk1r3/pGTp1FoTa5LTzTSEungNqCMZSk553AfxprooBINqemakizW7SuNbw42FsuIAypKHMrKfIfElPzxXhdklNw4/gQFJd8aaF7U4OxSVhGfkfhx+VPVFAI8mxOiLcCzbcOGBFSztQAfEBVvx8+E5/Ko06zXZ5qay4hXipEpaC3EOXd7a0hJc34Odw429wKsGigFVmAIF2StdoVIYcjtIZ8NsKDSh9rPpzg5rSm3XcxG45t7zS2nkrbU2wklY8cqJUs8jA7AYqxKKAUH7ZLftfuqmJCD9NrdJQSlXhlxSgsEcgYI5qNd7JIaXckNmWphbkZQfddU4oJSF7lblHPw5FPFfFJCklKgCCMEHzoCt48ddwZS2u3JYkmG0hDKGj9cgOJKlkkAflz3PNM0aD4MG9sPW1x6O7NKm2EYG5Bbb5TyPMK/MVuocCFDUpUWK0yVdylOM1JoBGbiXMXKPJkRJ820Rlq8OPJAU8CpGM47qSCMDPPxGsz9qecj3KQzbVNSFzoy4+UALShKm849ABu/jTnRQCDIst0fiiJGiOR5jTckPyTwH94O0BXnkkfhipIgSXLpGmRbW9EiolR8slOCNoWCrHoNwGadaKAV7qxKTelP2uHPjzFOo3uJIMd9HGSsZxwM+h4FadNknKt8oOQFl0Q5IZynkLMhak4+ZBBqwKKASJVuniNc4gtzjk2RIU63K2BSS2cYTnIIwBtx/OtpptqRDTPnPtunxA2Aw3CLPKQRkJ3KyTkD+6KY6KARocWQLLDV7peIs1lLzQLDSQSlZB2q3AjB458iO9ZIqJzb1qtcm2zjEt+xxTiGtwddGcc/dTnOfM4p1ooDQabW8bvdi7ClMJfeDja3WilJASlPf1zW/oooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooD//Z" class="logo-img" alt="광주여자상업고등학교">
+  <div class="header-center">
+    <div class="school-name">광주여자상업고등학교</div>
+    <div class="header-sub">급식 출석 관리 시스템</div>
+  </div>
+  <div class="header-clock">
+    <div class="clock-time" id="clock">--:--:--</div>
+    <div class="clock-date" id="dateStr"></div>
   </div>
 </header>
 
@@ -273,47 +405,51 @@
   <button class="meal-tab"        data-meal="석식" onclick="selectMeal('석식')">🌙 석식</button>
 </div>
 
-<!-- QR 코드 -->
-<div class="qr-section">
-  <div class="qr-label">📱 QR 스캔으로 빠르게 입력</div>
-  <div class="qr-wrapper"><div id="qrcode"></div></div>
-  <div class="qr-desc">학생 스마트폰으로 QR 스캔 → 학번 입력 페이지 이동</div>
-</div>
-
-<!-- 학번 직접 입력 -->
-<div class="input-section">
-  <div class="input-label">⌨️ 학번 직접 입력</div>
-  <div class="input-row">
-    <input type="number" id="studentIdInput" placeholder="학번 입력 (예: 10101)"
-           maxlength="5" inputmode="numeric" onkeydown="if(event.key==='Enter') submitAttendance('학번입력')">
-    <button id="submitBtn" onclick="submitAttendance('학번입력')">확인 ✓</button>
+<!-- 메인 그리드 -->
+<div class="main-grid">
+  <!-- QR -->
+  <div class="qr-card">
+    <div class="section-label">📱 QR 스캔</div>
+    <div class="qr-wrapper"><div id="qrcode"></div></div>
+    <div class="qr-desc">학생 스마트폰으로 QR 스캔</div>
   </div>
-</div>
 
-<!-- 결과 알림 -->
-<div class="result-box" id="resultBox">
-  <div id="resultIcon"></div>
-  <div class="result-name" id="resultName"></div>
-  <div class="result-sub" id="resultSub"></div>
+  <!-- 학번 입력 -->
+  <div class="input-card">
+    <div class="section-label">⌨️ 학번 직접 입력</div>
+    <input type="number" id="studentIdInput" placeholder="학번 입력"
+           inputmode="numeric" onkeydown="if(event.key==='Enter') submitAttendance('학번입력')">
+    <button id="submitBtn" onclick="submitAttendance('학번입력')">출석 체크 ✓</button>
+  </div>
 </div>
 
 <!-- 카운터 -->
-<div class="counter-section">
+<div class="counter-row">
   <div class="counter-card breakfast">
-    <div class="counter-label">🌅 조식</div>
+    <div class="counter-label">🌅 조식 출석</div>
     <div class="counter-num" id="breakfastCount">-</div>
   </div>
   <div class="counter-card dinner">
-    <div class="counter-label">🌙 석식</div>
+    <div class="counter-label">🌙 석식 출석</div>
     <div class="counter-num" id="dinnerCount">-</div>
   </div>
 </div>
 
 <!-- 최근 출석 -->
-<div class="recent-section">
-  <div class="recent-title">📋 최근 출석 기록</div>
+<div class="recent-card">
+  <div class="section-label">📋 최근 출석 기록</div>
   <div class="recent-list" id="recentList">
-    <div style="color:#ccc; font-size:13px; text-align:center; padding:20px;">아직 출석 기록이 없습니다</div>
+    <div style="color:#ccc;font-size:13px;text-align:center;padding:16px;">아직 출석 기록이 없습니다</div>
+  </div>
+</div>
+
+<!-- 팝업 -->
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup" id="popup">
+    <div class="popup-icon" id="pIcon"></div>
+    <div class="popup-name" id="pName"></div>
+    <div class="popup-sub"  id="pSub"></div>
+    <button class="popup-close" onclick="closePopup()">확인</button>
   </div>
 </div>
 
@@ -324,16 +460,10 @@
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <h3>⚙️ 시스템 설정</h3>
-    <div class="modal-desc">
-      Google Apps Script 배포 후 발급된 웹앱 URL을 입력하세요.<br>
-      형식: https://script.google.com/macros/s/.../exec
-    </div>
-    <input type="url" id="apiUrlInput" placeholder="Apps Script 웹앱 URL">
-    <div class="modal-desc" style="margin-top:4px;">
-      학생이 QR 스캔 시 이동할 모바일 입력 페이지 URL<br>
-      (이 페이지 URL 또는 별도 모바일 페이지)
-    </div>
-    <input type="url" id="mobileUrlInput" placeholder="모바일 입력 페이지 URL">
+    <div class="modal-desc">Apps Script 웹앱 URL</div>
+    <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+    <div class="modal-desc">모바일 페이지 URL (기본값 자동 적용)</div>
+    <input type="url" id="mobileUrlInput" placeholder="https://...github.io/.../geupsik_mobile.html">
     <div class="modal-btns">
       <button class="modal-btn secondary" onclick="closeSettings()">취소</button>
       <button class="modal-btn primary"   onclick="saveSettings()">저장</button>
@@ -341,168 +471,133 @@
   </div>
 </div>
 
-<!-- QR 라이브러리 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
 <script>
-// ── 설정 ──────────────────────────────────────────────────
 const DEFAULT_API_URL    = 'https://script.google.com/macros/s/AKfycbwa0kjUAUKG4qAnu-3MA-L1vSZHXekgfXdEiYBfNE-c0loNi6eJ7Qf8ns_p1Cp7QGU_5A/exec';
-const DEFAULT_MOBILE_URL = 'https://sbyjune1-web.github.io/geupsik/geupsik_mobile.html?api=https://script.google.com/macros/s/AKfycbwa0kjUAUKG4qAnu-3MA-L1vSZHXekgfXdEiYBfNE-c0loNi6eJ7Qf8ns_p1Cp7QGU_5A/exec';
+const DEFAULT_MOBILE_BASE = 'https://sbyjune1-web.github.io/geupsik/geupsik_mobile.html';
 
-let API_URL     = localStorage.getItem('apiUrl')    || DEFAULT_API_URL;
-let MOBILE_URL  = localStorage.getItem('mobileUrl') || DEFAULT_MOBILE_URL;
+let API_URL    = localStorage.getItem('apiUrl')    || DEFAULT_API_URL;
+let MOBILE_URL = localStorage.getItem('mobileUrl') || DEFAULT_MOBILE_BASE;
 let currentMeal = '조식';
-let qrObj       = null;
 const recentItems = [];
+let popupTimer = null;
 
-// ── 시계 ──────────────────────────────────────────────────
+// 시계
 function updateClock() {
   const now = new Date();
-  document.getElementById('clock').textContent =
-    now.toLocaleTimeString('ko-KR', { hour12: false });
-  document.getElementById('dateStr').textContent =
-    now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+  document.getElementById('clock').textContent = now.toLocaleTimeString('ko-KR', { hour12: false });
+  document.getElementById('dateStr').textContent = now.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
 }
 updateClock();
 setInterval(updateClock, 1000);
 
-// ── 식사 선택 ─────────────────────────────────────────────
+// 식사 선택
 function selectMeal(meal) {
   currentMeal = meal;
   document.querySelectorAll('.meal-tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`.meal-tab[data-meal="${meal}"]`).classList.add('active');
   updateQR();
   loadStatus();
-  clearResult();
 }
 
-// ── QR 코드 생성 ──────────────────────────────────────────
+// QR 생성
 function updateQR() {
   const el = document.getElementById('qrcode');
   el.innerHTML = '';
-
-  // meal을 먼저 배치하고 api URL을 encodeURIComponent로 인코딩
-  // → 모바일에서 params.get('meal') 이 확실히 동작함
-  const mobileBase = 'https://sbyjune1-web.github.io/geupsik/geupsik_mobile.html';
-  let url = `${mobileBase}?meal=${encodeURIComponent(currentMeal)}&api=${encodeURIComponent(API_URL)}`;
-  if (!MOBILE_URL && !API_URL) {
-    url = '설정에서 API URL을 입력해주세요';
-  }
-
-  qrObj = new QRCode(el, {
-    text:   url,
-    width:  160,
-    height: 160,
-    colorDark:  '#1a1a1a',
-    colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.M
-  });
+  const url = `${DEFAULT_MOBILE_BASE}?meal=${encodeURIComponent(currentMeal)}&api=${encodeURIComponent(API_URL)}`;
+  new QRCode(el, { text: url, width: 150, height: 150, colorDark: '#3d1a2e', colorLight: '#fff8fb', correctLevel: QRCode.CorrectLevel.M });
 }
 
-// ── 출석 등록 ─────────────────────────────────────────────
+// 출석 등록
 async function submitAttendance(method) {
   const input = document.getElementById('studentIdInput');
   const studentId = input.value.trim();
-
-  if (!studentId) { showResult('error', '❌', '학번을 입력하세요', ''); return; }
-  if (!API_URL)   { showResult('error', '⚙️', '설정 필요', '우측 하단 설정 버튼을 눌러 API URL을 입력하세요'); return; }
+  if (!studentId) { showPopup('error','❌','학번 미입력','학번을 입력해주세요'); return; }
+  if (!API_URL)   { showPopup('error','⚙️','설정 필요','설정 버튼을 눌러 API URL을 입력하세요'); return; }
 
   try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({ studentId, meal: currentMeal, method })
-    });
+    const res  = await fetch(API_URL, { method:'POST', body: JSON.stringify({ studentId, meal: currentMeal, method }) });
     const data = await res.json();
-
     if (data.success) {
       const s = data.student;
-      showResult('success', '✅', `${s.name}`, `${s.grade}학년 ${s.classNum}반 ${s.number}번 · ${currentMeal} 출석 완료`);
+      showPopup('success','✅', s.name + ' 학생', s.grade + '학년 ' + s.classNum + '반 ' + s.number + '번\n' + currentMeal + ' 출석이 완료되었습니다 🎉');
       addRecent(s, currentMeal, method);
       updateCounter(currentMeal);
     } else if (data.duplicate) {
       const s = data.student;
-      showResult('warn', '⚠️', `${s.name}`, `이미 ${currentMeal} 출석이 등록되어 있습니다`);
+      showPopup('warn','⚠️', s.name + ' 학생', '이미 ' + currentMeal + ' 출석이 등록되어 있습니다');
     } else {
-      showResult('error', '❌', '등록 실패', data.message || '오류가 발생했습니다');
+      showPopup('error','❌','등록 실패', data.message || '오류가 발생했습니다');
     }
-  } catch (e) {
-    showResult('error', '🔌', '연결 오류', 'API URL을 확인하세요: ' + e.message);
+  } catch(e) {
+    showPopup('error','🔌','연결 오류','API URL을 확인하세요');
   }
-
   input.value = '';
   input.focus();
 }
 
-// ── 결과 표시 ─────────────────────────────────────────────
-let resultTimer = null;
-function showResult(type, icon, name, sub) {
-  const box = document.getElementById('resultBox');
-  box.className = `result-box ${type}`;
-  document.getElementById('resultIcon').textContent = icon;
-  document.getElementById('resultName').textContent = name;
-  document.getElementById('resultSub').textContent  = sub;
-
-  if (resultTimer) clearTimeout(resultTimer);
-  resultTimer = setTimeout(clearResult, 4000);
+// 팝업
+function showPopup(type, icon, name, sub) {
+  const overlay = document.getElementById('popupOverlay');
+  const popup   = document.getElementById('popup');
+  popup.className = 'popup ' + type;
+  document.getElementById('pIcon').textContent = icon;
+  document.getElementById('pName').textContent = name;
+  document.getElementById('pSub').textContent  = sub;
+  overlay.classList.add('show');
+  if (popupTimer) clearTimeout(popupTimer);
+  if (type === 'success') popupTimer = setTimeout(closePopup, 3000);
 }
-function clearResult() {
-  const box = document.getElementById('resultBox');
-  box.className = 'result-box';
+function closePopup() {
+  document.getElementById('popupOverlay').classList.remove('show');
+  document.getElementById('studentIdInput').focus();
 }
 
-// ── 최근 목록 추가 ────────────────────────────────────────
+// 최근 목록
 function addRecent(student, meal, method) {
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-  recentItems.unshift({ student, meal, method, time: timeStr });
+  const time = new Date().toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit', hour12:false });
+  recentItems.unshift({ student, meal, method, time });
   if (recentItems.length > 30) recentItems.pop();
   renderRecent();
 }
 function renderRecent() {
   const list = document.getElementById('recentList');
-  if (!recentItems.length) {
-    list.innerHTML = '<div style="color:#ccc;font-size:13px;text-align:center;padding:20px;">아직 출석 기록이 없습니다</div>';
-    return;
-  }
-  list.innerHTML = recentItems.map(({ student: s, meal, time }) => `
-    <div class="recent-item">
+  if (!recentItems.length) { list.innerHTML = '<div style="color:#ccc;font-size:13px;text-align:center;padding:16px;">아직 출석 기록이 없습니다</div>'; return; }
+  list.innerHTML = recentItems.map(({ student:s, meal, time }) =>
+    `<div class="recent-item">
       <span class="recent-time">${time}</span>
       <span class="recent-name">${s.name}</span>
       <span class="recent-grade">${s.grade}학년 ${s.classNum}반</span>
-      &nbsp;
-      <span class="badge ${meal === '조식' ? 'badge-breakfast' : 'badge-dinner'}">${meal}</span>
-    </div>
-  `).join('');
+      <span class="badge ${meal==='조식'?'badge-breakfast':'badge-dinner'}">${meal}</span>
+    </div>`
+  ).join('');
 }
 
-// ── 카운터 업데이트 ───────────────────────────────────────
+// 카운터
 function updateCounter(meal) {
-  const id = meal === '조식' ? 'breakfastCount' : 'dinnerCount';
+  const id = meal==='조식' ? 'breakfastCount' : 'dinnerCount';
   const el = document.getElementById(id);
   el.textContent = (parseInt(el.textContent) || 0) + 1;
 }
-
 async function loadStatus() {
   if (!API_URL) return;
   try {
-    const [r1, r2] = await Promise.all([
-      fetch(`${API_URL}?action=status&meal=조식`).then(r => r.json()),
-      fetch(`${API_URL}?action=status&meal=석식`).then(r => r.json())
+    const [r1,r2] = await Promise.all([
+      fetch(`${API_URL}?action=status&meal=조식`).then(r=>r.json()),
+      fetch(`${API_URL}?action=status&meal=석식`).then(r=>r.json())
     ]);
     if (r1.success) document.getElementById('breakfastCount').textContent = r1.count;
-    if (r2.success) document.getElementById('dinnerCount').textContent   = r2.count;
+    if (r2.success) document.getElementById('dinnerCount').textContent    = r2.count;
   } catch(e) {}
 }
 
-// ── 설정 ──────────────────────────────────────────────────
+// 설정
 function openSettings() {
   document.getElementById('apiUrlInput').value    = API_URL;
   document.getElementById('mobileUrlInput').value = MOBILE_URL;
   document.getElementById('modalOverlay').classList.add('open');
 }
-function closeSettings() {
-  document.getElementById('modalOverlay').classList.remove('open');
-}
+function closeSettings() { document.getElementById('modalOverlay').classList.remove('open'); }
 function saveSettings() {
   API_URL    = document.getElementById('apiUrlInput').value.trim();
   MOBILE_URL = document.getElementById('mobileUrlInput').value.trim();
@@ -513,10 +608,10 @@ function saveSettings() {
   loadStatus();
 }
 
-// ── 초기화 ────────────────────────────────────────────────
+// 초기화
 updateQR();
 loadStatus();
-setInterval(loadStatus, 60000); // 1분마다 카운터 갱신
+setInterval(loadStatus, 60000);
 document.getElementById('studentIdInput').focus();
 </script>
 </body>
