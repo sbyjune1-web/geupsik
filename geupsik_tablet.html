@@ -380,9 +380,13 @@ function selectMeal(meal) {
 function updateQR() {
   const el = document.getElementById('qrcode');
   el.innerHTML = '';
-  const url = MOBILE_URL
-    ? `${MOBILE_URL}?meal=${encodeURIComponent(currentMeal)}`
-    : '설정에서 모바일 URL을 입력해주세요';
+
+  // MOBILE_URL에 이미 ?가 포함된 경우 &meal=, 없으면 ?meal= 으로 연결
+  let url = '설정에서 모바일 URL을 입력해주세요';
+  if (MOBILE_URL) {
+    const sep = MOBILE_URL.includes('?') ? '&' : '?';
+    url = `${MOBILE_URL}${sep}meal=${encodeURIComponent(currentMeal)}`;
+  }
 
   qrObj = new QRCode(el, {
     text:   url,
