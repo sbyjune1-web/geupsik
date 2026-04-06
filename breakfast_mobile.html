@@ -222,7 +222,15 @@ updateClock(); setInterval(updateClock, 1000);
 
 async function doSubmit() {
   const sid = document.getElementById('sid').value.trim();
+  const btn = document.querySelector('button.submit');
+  const inp = document.getElementById('sid');
   if (!sid) { showPopup('error','❌','학번 미입력','학번을 입력해주세요'); return; }
+
+  // 버튼 비활성화 + 로딩 표시
+  btn.disabled = true;
+  btn.textContent = '확인 중... ⏳';
+  btn.style.opacity = '0.6';
+  inp.disabled = true;
 
   try {
     const res  = await fetch(apiUrl, { method:'POST', body: JSON.stringify({ studentId: sid, meal:'조식', method:'QR스캔' }) });
@@ -231,7 +239,6 @@ async function doSubmit() {
       const s = data.student;
       showPopup('success','✅', s.name + ' 학생', s.grade + '학년 ' + s.classNum + '반 ' + s.number + '번\n조식 출석 완료 🎉');
       speak(s.name + ' 학생, 조식 출석 확인되었습니다');
-      document.getElementById('sid').value = '';
     } else if (data.duplicate) {
       const s = data.student;
       showPopup('warn','⚠️', s.name + ' 학생', '이미 조식 출석이 등록되어 있습니다');
@@ -242,6 +249,13 @@ async function doSubmit() {
     }
   } catch(e) {
     showPopup('error','🔌','연결 오류','잠시 후 다시 시도해주세요');
+  } finally {
+    // 버튼 다시 활성화
+    btn.disabled = false;
+    btn.textContent = '출석 확인 ✓';
+    btn.style.opacity = '1';
+    inp.disabled = false;
+    inp.value = '';
   }
 }
 
