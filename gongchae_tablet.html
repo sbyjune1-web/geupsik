@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>공채반 출석 - 광주여자상업고등학교</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
+  :root {
+    --blue: #1565C0;
+    --blue-deep: #0d47a1;
+    --bg1: #f0f4ff;
+    --bg2: #e8eaf6;
+    --text-dark: #1a1a2e;
+    --text-mid: #4a4a7a;
+    --success: #2d8653;
+    --error: #c0392b;
+    --warn: #d4820a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: linear-gradient(160deg, var(--bg1) 0%, #fff 50%, var(--bg2) 100%);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .container { width: 100%; max-width: 560px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+  .header {
+    width: 100%; background: rgba(255,255,255,0.92);
+    border-radius: 24px; padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(21,101,192,0.12);
+    border: 1.5px solid #bbdefb;
+  }
+  .logo-img { height: 46px; object-fit: contain; }
+  .clock-wrap { text-align: right; }
+  .clock-time { font-size: 30px; font-weight: 900; color: var(--blue); letter-spacing: 2px; font-variant-numeric: tabular-nums; line-height: 1; }
+  .clock-date { font-size: 13px; color: var(--text-mid); margin-top: 3px; }
+
+  .meal-title { font-size: 26px; font-weight: 900; color: var(--blue-deep); letter-spacing: 2px; text-shadow: 0 2px 8px rgba(21,101,192,0.15); }
+
+  .input-card {
+    width: 100%; background: rgba(255,255,255,0.95);
+    border-radius: 28px; padding: 32px 28px;
+    box-shadow: 0 8px 40px rgba(21,101,192,0.15);
+    border: 2px solid #bbdefb;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  #studentIdInput {
+    width: 100%; padding: 24px 20px;
+    font-size: 52px; font-weight: 900;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: 3px solid #bbdefb; border-radius: 20px;
+    text-align: center; letter-spacing: 10px; outline: none;
+    background: var(--bg1); color: var(--text-dark);
+    transition: border 0.2s, box-shadow 0.2s;
+    -moz-appearance: textfield;
+  }
+  #studentIdInput::-webkit-inner-spin-button,
+  #studentIdInput::-webkit-outer-spin-button { -webkit-appearance: none; }
+  #studentIdInput:focus { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(21,101,192,0.15); background: #fff; }
+  #studentIdInput::placeholder { color: #c5cae9; letter-spacing: 4px; font-size: 32px; }
+
+  #submitBtn {
+    width: 100%; padding: 22px; font-size: 24px; font-weight: 900;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: none; border-radius: 20px;
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-deep) 100%);
+    color: #fff; cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 6px 24px rgba(13,71,161,0.3); letter-spacing: 2px;
+  }
+  #submitBtn:active { transform: scale(0.97); opacity: 0.9; }
+
+  /* 최근 출석 */
+  .recent-wrap {
+    position: fixed; bottom: 16px; left: 16px;
+    background: rgba(255,255,255,0.93);
+    border: 1.5px solid #bbdefb; border-radius: 16px;
+    padding: 12px 14px; min-width: 200px; max-width: 240px;
+    box-shadow: 0 4px 16px rgba(21,101,192,0.12);
+    display: none;
+  }
+  .recent-title { font-size: 11px; font-weight: 700; color: var(--text-mid); letter-spacing: 1px; margin-bottom: 8px; }
+  .recent-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0; border-bottom: 1px solid #e3f2fd; font-size: 12px;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);} }
+  .recent-item:last-child { border-bottom: none; }
+  .recent-num  { color: #bbb; font-size: 10px; width: 36px; }
+  .recent-name { font-weight: 700; color: var(--text-dark); flex: 1; }
+  .recent-grade{ color: var(--text-mid); font-size: 10px; }
+
+  /* 팝업 */
+  .popup-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,26,46,0.6); z-index: 100;
+    align-items: center; justify-content: center; backdrop-filter: blur(4px);
+  }
+  .popup-overlay.show { display: flex; }
+  .popup {
+    background: #fff; border-radius: 32px; padding: 44px 36px 32px;
+    width: 460px; max-width: 92%; text-align: center;
+    animation: popUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.22);
+  }
+  @keyframes popUp { from{opacity:0;transform:scale(0.6)translateY(40px);}to{opacity:1;transform:scale(1)translateY(0);} }
+  .popup.success { border-top: 10px solid var(--success); }
+  .popup.error   { border-top: 10px solid var(--error); }
+  .popup.warn    { border-top: 10px solid var(--warn); }
+  .popup-icon { font-size: 80px; line-height: 1; margin-bottom: 12px; }
+  .popup-name { font-size: 40px; font-weight: 900; margin: 8px 0; }
+  .popup.success .popup-name { color: var(--success); }
+  .popup.error   .popup-name { color: var(--error); }
+  .popup.warn    .popup-name { color: var(--warn); }
+  .popup-sub { font-size: 18px; color: #666; line-height: 1.7; margin-bottom: 24px; white-space: pre-line; }
+  .popup-close {
+    width: 100%; padding: 17px; font-size: 18px; font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif; border: none; border-radius: 16px; cursor: pointer;
+  }
+  .popup.success .popup-close { background: #e8f5e9; color: var(--success); }
+  .popup.error   .popup-close { background: #ffebee; color: var(--error); }
+  .popup.warn    .popup-close { background: #fff8e1; color: var(--warn); }
+
+  .settings-btn {
+    position: fixed; bottom: 14px; right: 14px;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(21,101,192,0.15); color: var(--blue-deep);
+    border: none; font-size: 16px; cursor: pointer; opacity: 0.5; transition: opacity 0.2s;
+  }
+  .settings-btn:hover { opacity: 1; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 20px; padding: 24px; width: 90%; max-width: 400px; border-top: 5px solid var(--blue); }
+  .modal h3 { font-size: 16px; font-weight: 900; color: var(--text-dark); margin-bottom: 12px; }
+  .modal input { width: 100%; padding: 10px; border: 2px solid #bbdefb; border-radius: 10px; font-size: 12px; font-family: 'Noto Sans KR', sans-serif; margin-bottom: 10px; outline: none; }
+  .modal-desc { font-size: 11px; color: var(--text-mid); margin-bottom: 6px; }
+  .modal-btns { display: flex; gap: 10px; }
+  .modal-btn { flex: 1; padding: 11px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+  .modal-btn.primary { background: linear-gradient(135deg, var(--blue), var(--blue-deep)); color: #fff; }
+  .modal-btn.secondary { background: #f0f0f0; color: #666; }
+
+  .deco { position: fixed; font-size: 24px; opacity: 0.07; pointer-events: none; animation: float 7s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)rotate(-8deg);}50%{transform:translateY(-20px)rotate(8deg);} }
+</style>
+</head>
+<body>
+<div class="deco" style="top:8%;left:3%;animation-delay:0s;">💼</div>
+<div class="deco" style="top:70%;right:3%;animation-delay:2s;">📋</div>
+<div class="deco" style="bottom:8%;left:5%;animation-delay:1s;">🎓</div>
+
+<div class="container">
+  <div class="header">
+    <img src="data:image/png;base64,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xMStlLzSELQNi8jCQOASBk81g+g1NwrY0q3yW0i2IS6Y6AVoeBQrJB4JyOxznmnuigNJa4kiTp11qUw3GlPNOM70t7CUkqCVEeRIOSPIk1r3/pGTp1FoTa5LTzTSEungNqCMZSk553AfxprooBINqemakizW7SuNbw42FsuIAypKHMrKfIfElPzxXhdklNw4/gQFJd8aaF7U4OxSVhGfkfhx+VPVFAI8mxOiLcCzbcOGBFSztQAfEBVvx8+E5/Ko06zXZ5qay4hXipEpaC3EOXd7a0hJc34Odw429wKsGigFVmAIF2StdoVIYcjtIZ8NsKDSh9rPpzg5rSm3XcxG45t7zS2nkrbU2wklY8cqJUs8jA7AYqxKKAUH7ZLftfuqmJCD9NrdJQSlXhlxSgsEcgYI5qNd7JIaXckNmWphbkZQfddU4oJSF7lblHPw5FPFfFJCklKgCCMEHzoCt48ddwZS2u3JYkmG0hDKGj9cgOJKlkkAflz3PNM0aD4MG9sPW1x6O7NKm2EYG5Bbb5TyPMK/MVuocCFDUpUWK0yVdylOM1JoBGbiXMXKPJkRJ820Rlq8OPJAU8CpGM47qSCMDPPxGsz9qecj3KQzbVNSFzoy4+UALShKm849ABu/jTnRQCDIst0fiiJGiOR5jTckPyTwH94O0BXnkkfhipIgSXLpGmRbW9EiolR8slOCNoWCrHoNwGadaKAV7qxKTelP2uHPjzFOo3uJIMd9HGSsZxwM+h4FadNknKt8oOQFl0Q5IZynkLMhak4+ZBBqwKKASJVuniNc4gtzjk2RIU63K2BSS2cYTnIIwBtx/OtpptqRDTPnPtunxA2Aw3CLPKQRkJ3KyTkD+6KY6KARocWQLLDV7peIs1lLzQLDSQSlZB2q3AjB458iO9ZIqJzb1qtcm2zjEt+xxTiGtwddGcc/dTnOfM4p1ooDQabW8bvdi7ClMJfeDja3WilJASlPf1zW/oooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooAooooD//Z" class="logo-img" alt="광주여자상업고등학교">
+    <div class="clock-wrap">
+      <div class="clock-time" id="clock">--:--:--</div>
+      <div class="clock-date"  id="dateStr"></div>
+    </div>
+  </div>
+  <div class="meal-title">💼 공채반 출석 체크</div>
+  <div class="input-card">
+    <input type="number" id="studentIdInput" placeholder="학번 입력"
+           inputmode="numeric" autofocus
+           onkeydown="if(event.key==='Enter') submitAttendance()">
+    <button id="submitBtn" onclick="submitAttendance()">출석 확인 ✓</button>
+  </div>
+</div>
+
+<div class="recent-wrap" id="recentWrap">
+  <div class="recent-title">📋 최근 출석 (10명)</div>
+  <div id="recentList"></div>
+</div>
+
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup" id="popup">
+    <div class="popup-icon" id="pIcon"></div>
+    <div class="popup-name" id="pName"></div>
+    <div class="popup-sub"  id="pSub"></div>
+    <button class="popup-close" onclick="closePopup()">확인</button>
+  </div>
+</div>
+
+<button class="settings-btn" onclick="openSettings()">⚙️</button>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>⚙️ API 설정</h3>
+    <div class="modal-desc">Apps Script 웹앱 URL</div>
+    <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeSettings()">취소</button>
+      <button class="modal-btn primary"   onclick="saveSettings()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_API = 'YOUR_APPS_SCRIPT_URL_HERE';
+let API_URL = localStorage.getItem('jbApiUrl') || DEFAULT_API;
+const recentItems = [];
+let popupTimer = null;
+
+// 음성
+let voices = [];
+speechSynthesis.onvoiceschanged = () => { voices = speechSynthesis.getVoices(); };
+function speak(text) {
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ko-KR'; u.rate = 0.95; u.pitch = 1.1;
+  const v = voices.find(v => v.lang.startsWith('ko') && /female|woman|미|나|여|유나|지수/i.test(v.name))
+            || voices.find(v => v.lang.startsWith('ko'));
+  if (v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('ko-KR', { hour12: false });
+  document.getElementById('dateStr').textContent = now.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
+}
+updateClock(); setInterval(updateClock, 1000);
+
+async function submitAttendance() {
+  const input = document.getElementById('studentIdInput');
+  const btn   = document.getElementById('submitBtn');
+  const studentId = input.value.trim();
+  if (!studentId) { showPopup('error','❌','학번 미입력','학번을 입력해주세요'); return; }
+
+  btn.disabled = true; btn.textContent = '확인 중... ⏳'; btn.style.opacity = '0.6';
+  input.disabled = true;
+
+  try {
+    const res  = await fetch(API_URL, { method:'POST', body: JSON.stringify({ studentId, className:'공채반', method:'학번입력' }) });
+    const data = await res.json();
+    if (data.success) {
+      const s = data.student;
+      const cls = String(s.classNum).replace('반','');
+      showPopup('success','✅', s.name + ' 학생', s.grade + '학년 ' + cls + '반 ' + s.number + '번\n공채반 출석 완료 🎉');
+      speak(s.name + ' 학생, 공채반 출석 확인되었습니다');
+      addRecent(s);
+    } else if (data.duplicate) {
+      const s = data.student;
+      const cls = String(s.classNum).replace('반','');
+      showPopup('warn','⚠️', s.name + ' 학생', s.grade + '학년 ' + cls + '반 ' + s.number + '번\n이미 공채반 출석이 등록되어 있습니다');
+      speak('이미 출석이 등록되어 있습니다');
+    } else {
+      showPopup('error','❌','등록 실패', data.message || '학번을 다시 확인해주세요');
+      speak('등록되지 않은 학번입니다');
+    }
+  } catch(e) {
+    showPopup('error','🔌','연결 오류','잠시 후 다시 시도해주세요');
+  } finally {
+    btn.disabled = false; btn.textContent = '출석 확인 ✓'; btn.style.opacity = '1';
+    input.disabled = false; input.value = '';
+  }
+}
+
+function showPopup(type, icon, name, sub) {
+  const popup = document.getElementById('popup');
+  popup.className = 'popup ' + type;
+  document.getElementById('pIcon').textContent = icon;
+  document.getElementById('pName').textContent = name;
+  document.getElementById('pSub').textContent  = sub;
+  document.getElementById('popupOverlay').classList.add('show');
+  if (popupTimer) clearTimeout(popupTimer);
+  if (type === 'success') popupTimer = setTimeout(closePopup, 3000);
+}
+function closePopup() {
+  document.getElementById('popupOverlay').classList.remove('show');
+  document.getElementById('studentIdInput').focus();
+}
+
+function addRecent(s) {
+  const cls = String(s.classNum).replace('반','');
+  recentItems.unshift({ name:s.name, grade:s.grade, cls, number:s.number, id:s.studentId });
+  if (recentItems.length > 10) recentItems.pop();
+  const wrap = document.getElementById('recentWrap');
+  const list = document.getElementById('recentList');
+  wrap.style.display = 'block';
+  list.innerHTML = recentItems.map(r =>
+    '<div class="recent-item">' +
+    '<span class="recent-num">' + r.id + '</span>' +
+    '<span class="recent-name">' + r.name + '</span>' +
+    '<span class="recent-grade">' + r.grade + '학년 ' + r.cls + '반</span>' +
+    '</div>'
+  ).join('');
+}
+
+function openSettings() { document.getElementById('apiUrlInput').value = API_URL; document.getElementById('modalOverlay').classList.add('open'); }
+function closeSettings() { document.getElementById('modalOverlay').classList.remove('open'); }
+function saveSettings() { API_URL = document.getElementById('apiUrlInput').value.trim(); localStorage.setItem('jbApiUrl', API_URL); closeSettings(); }
+</script>
+</body>
+</html>
